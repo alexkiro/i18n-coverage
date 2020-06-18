@@ -1,0 +1,17 @@
+name: 'i18n coverage'
+description: 'Check i18n coverage of the project'
+inputs:
+  translations-path:
+    description: 'Path to translation folder'
+    required: false
+    default: 'translations'
+  default-language:
+    description: 'Language code being translated from'
+    required: false
+    default: 'en'
+outputs:
+  coverage:
+    description: 'Coverage percentage'
+runs:
+  using: 'node12'
+  main: 'index.js'
