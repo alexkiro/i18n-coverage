@@ -1,0 +1,15 @@
+on: [push]
+
+jobs:
+  i18n-coverage:
+    runs-on: ubuntu-latest
+    name: Check i18n coverage
+    steps:
+    - name: Check i18n coverage
+      id: i18nCov
+      uses: alexkiro/i18n-coverage@master
+      with:
+        translations-path: './translations/'
+        default-language: './en/'
+    - name: Get the coverage
+      run: echo "The time was ${{ steps.i18nCov.outputs.coverage }}"
