@@ -2,8 +2,8 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 
 try {
-  const translationPath = core.getInput("translations-path");
-  const defaultLanguage = core.getInput("default-language");
+  const translationPath = core.getInput("translations-path") || "translations";
+  const defaultLanguage = core.getInput("default-language") || "en";
 
   console.log("Path:", translationPath);
   console.log("Lang:", defaultLanguage);
