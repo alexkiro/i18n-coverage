@@ -134,7 +134,7 @@ bower_components
 build/Release
 
 # Dependency directories
-# node_modules/ # GitHub Action require the node modules folder to be included.
+node_modules/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -177,7 +177,7 @@ web_modules/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# dist
 
 # Gatsby files
 .cache/
@@ -238,7 +238,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+# dist/
 downloads/
 eggs/
 .eggs/
