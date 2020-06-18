@@ -1,18 +1,25 @@
 const core = require("@actions/core");
+const glob = require("@actions/glob");
 const github = require("@actions/github");
 
-try {
+async function main() {
   const translationPath = core.getInput("translations-path") || "translations";
   const defaultLanguage = core.getInput("default-language") || "en";
 
+  const globber = await glob.create([
+    `${translationPath}/*/*/*.po`,
+    `${translationPath}/locale/*/*/*.po`
+  ].join("\n"))
+  const files = await globber.glob()
+  files.forEach((file) => {
+    console.log("File:", file);
+  })
   console.log("Path:", translationPath);
   console.log("Lang:", defaultLanguage);
 
   core.setOutput("coverage", "100.00");
-
-  const payload = JSON.stringify(github.context.payload, undefined, 2);
-  console.log(`The event payload: ${payload}`);
-
-} catch (error) {
-  core.setFailed(error.message);
 }
+
+main().catch((error) => {
+  core.setFailed(error.message);
+})

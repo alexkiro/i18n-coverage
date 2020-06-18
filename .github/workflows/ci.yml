@@ -5,11 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Check i18n coverage
     steps:
-    - name: Check i18n coverage
-      id: i18nCov
-      uses: alexkiro/i18n-coverage@master
-      with:
-        translations-path: './translations/'
-        default-language: 'en'
-    - name: Get the coverage
-      run: echo "The coverage was ${{ steps.i18nCov.outputs.coverage }}"
+      - uses: actions/checkout@v2
+      - name: Check i18n coverage
+        id: i18nCov
+        uses: alexkiro/i18n-coverage@master
+        with:
+          translations-path: './translations/'
+          default-language: 'en'
+      - name: Get the coverage
+        run: echo "The coverage was ${{ steps.i18nCov.outputs.coverage }}"
