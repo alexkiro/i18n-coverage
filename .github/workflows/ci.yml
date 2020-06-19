@@ -11,6 +11,6 @@ jobs:
         uses: alexkiro/i18n-coverage@master
         with:
           translations-path: './translations/'
-          default-language: 'en'
+          ignore-languages: 'en'
       - name: Get the coverage
         run: echo "The coverage was ${{ steps.i18nCov.outputs.coverage }}"
