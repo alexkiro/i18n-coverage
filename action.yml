@@ -1,4 +1,4 @@
-name: "18n coverage"
+name: "i18n coverage"
 author: "alexkiro"
 description: "Measures and check i18n coverage of your project."
 inputs:
