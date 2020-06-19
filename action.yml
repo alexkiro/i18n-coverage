@@ -5,10 +5,14 @@ inputs:
     description: 'Path to translation folder'
     required: false
     default: 'translations'
-  default-language:
-    description: 'Language code being translated from'
+  only-languages:
+    description: 'Only check these languages, comma separated list'
     required: false
-    default: 'en'
+    default: ''
+  ignore-languages:
+    description: 'Check all languages expect this one, comma separated list'
+    required: false
+    default: ''
 outputs:
   coverage:
     description: 'Coverage percentage'
