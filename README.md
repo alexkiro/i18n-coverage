@@ -66,6 +66,11 @@ The glob patterns to the translations files to check. Defaults to "translations/
 Github secret token, usually set to `${{ secrets.GITHUB_TOKEN }}`. If not specified the check details
 are not attached to the commit, and therefore can only be found and used in the action workflow.
 
+### `min-coverage`
+
+The minimum coverage required for this check to be marked as success. If not set or set to 0 the 
+check is marked as neutral. 
+
 ### `ignore-languages`
 
 Comma separated list of languages codes; if specified these languages will be excluded from the check.
