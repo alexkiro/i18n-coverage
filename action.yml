@@ -1,5 +1,6 @@
 name: "18n coverage"
-description: "Check i18n coverage of the project"
+author: "alexkiro"
+description: "Measures and check i18n coverage of your project."
 inputs:
   translations-path:
     description: "Path to translation folder"
@@ -24,6 +25,9 @@ inputs:
 outputs:
   coverage:
     description: "Coverage percentage"
+branding:
+  icon: "percent"
+  color: "green"
 runs:
   using: "node12"
   main: "dist/index.js"
