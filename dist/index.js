@@ -3097,6 +3097,7 @@ function getArrayInput(value) {
 
 
 async function main() {
+  const token = core.getInput("token");
   const translationPath = core.getInput("translations-path") || "translations";
   const onlyLanguages = getArrayInput(core.getInput("only-languages"));
   const ignoreLanguages = getArrayInput(core.getInput("ignore-languages"));
@@ -3139,10 +3140,35 @@ async function main() {
     totalMessages += poMessages;
     totalTranslatedMessages += poTranslatedMessages;
   });
-  core.setOutput(
-    "coverage",
-    (totalTranslatedMessages / totalMessages * 100).toFixed(2),
-  );
+
+  const coverage = (totalTranslatedMessages / totalMessages * 100).toFixed(2);
+  const summary =
+    `Total coverage ${coverage} (${totalTranslatedMessages} / ${totalMessages} messages)`
+
+  console.log(summary)
+  core.setOutput("coverage", coverage);
+
+  const context = github.context.payload;
+  if (!token || !context.head_commit) return;
+
+  console.log("Creating check run");
+  const octokit = github.getOctokit(token)
+  octokit.checks.create(
+    {
+      owner: context.repository.owner.login,
+      repo: context.repository.name,
+      name: "i18n-coverage",
+      head_sha: context.head_commit.id,
+      status: "completed",
+      conclusion: "neutral",
+      output: {
+        title: `I18N coverage: ${coverage}%`,
+        summary: summary,
+        // TODO, add details
+      }
+    }
+  )
+
 }
 
 main().catch((error) => {
