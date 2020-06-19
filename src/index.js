@@ -97,7 +97,7 @@ async function main() {
   const context = github.context.payload;
   if (!token || !context.head_commit) return;
 
-  console.log("Creating check run");
+    console.log("Creating check run");
   const octokit = github.getOctokit(token);
   let conclusion;
 
