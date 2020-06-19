@@ -7,11 +7,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check i18n coverage
-        id: i18nCov
+        id: i18nCoverage
         uses: alexkiro/i18n-coverage@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          translations-path: './translations/'
+          translations-path: 'translations'
           ignore-languages: 'en'
       - name: Get the coverage
-        run: echo "The coverage was ${{ steps.i18nCov.outputs.coverage }}"
+        run: echo "The coverage was ${{ steps.i18nCoverage.outputs.coverage }}"

@@ -3,6 +3,20 @@ const glob = require("@actions/glob");
 const github = require("@actions/github");
 const po2json = require("po2json");
 
+const token = core.getInput("token");
+const translationPath = core.getInput("translations-path") || "translations/**/*.po";
+const onlyLanguages = getArrayInput(core.getInput("only-languages"));
+const ignoreLanguages = getArrayInput(core.getInput("ignore-languages"));
+
+console.log("translations-path", translationPath);
+console.log("only-languages:", onlyLanguages);
+console.log("ignore-languages:", ignoreLanguages);
+
+main().catch((error) => {
+  core.setFailed(error.message);
+});
+
+
 /**
  * @param value {string}
  * @return {Array}
@@ -15,45 +29,26 @@ function getArrayInput(value) {
     .filter((item) => !!item);
 }
 
-
-async function main() {
-  const token = core.getInput("token");
-  const translationPath = core.getInput("translations-path") || "translations";
-  const onlyLanguages = getArrayInput(core.getInput("only-languages"));
-  const ignoreLanguages = getArrayInput(core.getInput("ignore-languages"));
-
-  console.log("translations-path", translationPath);
-  console.log("only-languages:", onlyLanguages);
-  console.log("ignore-languages:", ignoreLanguages);
-
-  const globber = await glob.create([
-    `${translationPath}/**/*.po`
-  ].join("\n"));
-
-  const perLanguageDetails = {};
-  let totalMessages = 0;
-  let totalTranslatedMessages = 0;
-
-  (await globber.glob()).forEach((file) => {
+function parseFile(file) {
     console.log("Parsing file:", file);
     const translation = po2json.parseFileSync(file);
     const language = translation[""].language.trim().toLowerCase();
     const details = {
+      language,
       skipped: false,
       messageCount: 0,
       translatedMessageCount: 0,
       summary: "",
       coverage: 0
     };
-    perLanguageDetails[language] = details;
     if (
       (onlyLanguages.length > 0 && onlyLanguages.indexOf(language) === -1) ||
       (ignoreLanguages.length > 0 && ignoreLanguages.indexOf(language) !== -1)
     ) {
       console.log("Skipping file:", file);
       details.skipped = true;
-      details.summary = ` - "${language}" skipped`
-      return;
+      details.summary = ` - "${file}" skipped`
+      return details;
     }
 
     Object.entries(translation).forEach(([msgid, msgstr]) => {
@@ -64,10 +59,24 @@ async function main() {
 
     details.coverage = (details.translatedMessageCount / details.messageCount * 100)
       .toFixed(2);
-    details.summary = ` - "${language}" translated ${details.coverage} `;
+    details.summary = ` - "${file}" translated ${details.coverage} `;
     details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
 
     console.log(details.summary);
+    return details
+}
+
+
+async function main() {
+  const globber = await glob.create(translationPath);
+
+  let allSummaries = []
+  let totalMessages = 0;
+  let totalTranslatedMessages = 0;
+
+  (await globber.glob()).forEach((file) => {
+    const details = parseFile(file);
+    allSummaries.push(details.summary);
     totalMessages += details.messageCount;
     totalTranslatedMessages += details.translatedMessageCount;
   });
@@ -95,13 +104,8 @@ async function main() {
       output: {
         title: `I18N: ${coverage}%`,
         summary: summary,
-        text: Object.values(perLanguageDetails).map((details) => details.summary).join("\n")
+        text: allSummaries.join("\n")
       }
     }
   );
-
 }
-
-main().catch((error) => {
-  core.setFailed(error.message);
-});
