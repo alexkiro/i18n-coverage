@@ -3078,10 +3078,27 @@ function regExpEscape (s) {
 /***/ 104:
 /***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
 
+/* eslint-env node */
+
 const core = __webpack_require__(470);
 const glob = __webpack_require__(281);
 const github = __webpack_require__(469);
 const po2json = __webpack_require__(672);
+
+const token = core.getInput("token");
+const translationPath =
+  core.getInput("translations-path") || "translations/**/*.po";
+const onlyLanguages = getArrayInput(core.getInput("only-languages"));
+const ignoreLanguages = getArrayInput(core.getInput("ignore-languages"));
+const minCoverage = parseFloat(core.getInput("min-Coverage") || "0.0");
+
+console.log("translations-path", translationPath);
+console.log("only-languages:", onlyLanguages);
+console.log("ignore-languages:", ignoreLanguages);
+
+main().catch((error) => {
+  core.setFailed(error.message);
+});
 
 /**
  * @param value {string}
@@ -3090,71 +3107,69 @@ const po2json = __webpack_require__(672);
 function getArrayInput(value) {
   if (!value) return [];
 
-  return value.split(",")
+  return value
+    .split(",")
     .map((item) => item.trim().toLowerCase())
     .filter((item) => !!item);
 }
 
+function parseFile(file) {
+  console.log("Parsing file:", file);
+  const translation = po2json.parseFileSync(file);
+  const language = translation[""].language.trim().toLowerCase();
+  const details = {
+    language,
+    skipped: false,
+    messageCount: 0,
+    translatedMessageCount: 0,
+    summary: "",
+    coverage: 0,
+  };
+  if (
+    (onlyLanguages.length > 0 && onlyLanguages.indexOf(language) === -1) ||
+    (ignoreLanguages.length > 0 && ignoreLanguages.indexOf(language) !== -1)
+  ) {
+    console.log("Skipping file:", file);
+    details.skipped = true;
+    details.summary = ` - "${file}" skipped`;
+    return details;
+  }
+
+  Object.entries(translation).forEach(([msgid, msgstr]) => {
+    if (msgid === "") return;
+    details.messageCount += 1;
+    details.translatedMessageCount += msgstr[1] ? 1 : 0;
+  });
+
+  details.coverage = (
+    (details.translatedMessageCount / details.messageCount) *
+    100
+  ).toFixed(2);
+  details.summary = ` - "${file}" translated ${details.coverage} `;
+  details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
+
+  console.log(details.summary);
+  return details;
+}
 
 async function main() {
-  const token = core.getInput("token");
-  const translationPath = core.getInput("translations-path") || "translations";
-  const onlyLanguages = getArrayInput(core.getInput("only-languages"));
-  const ignoreLanguages = getArrayInput(core.getInput("ignore-languages"));
+  const globber = await glob.create(translationPath);
 
-  console.log("translations-path", translationPath);
-  console.log("only-languages:", onlyLanguages);
-  console.log("ignore-languages:", ignoreLanguages);
-
-  const globber = await glob.create([
-    `${translationPath}/**/*.po`
-  ].join("\n"));
-
-  const perLanguageDetails = {};
+  let allSummaries = [];
   let totalMessages = 0;
   let totalTranslatedMessages = 0;
 
   (await globber.glob()).forEach((file) => {
-    console.log("Parsing file:", file);
-    const translation = po2json.parseFileSync(file);
-    const language = translation[""].language.trim().toLowerCase();
-    const details = {
-      skipped: false,
-      messageCount: 0,
-      translatedMessageCount: 0,
-      summary: "",
-      coverage: 0
-    };
-    perLanguageDetails[language] = details;
-    if (
-      (onlyLanguages.length > 0 && onlyLanguages.indexOf(language) === -1) ||
-      (ignoreLanguages.length > 0 && ignoreLanguages.indexOf(language) !== -1)
-    ) {
-      console.log("Skipping file:", file);
-      details.skipped = true;
-      details.summary = ` - "${language}" skipped`
-      return;
-    }
-
-    Object.entries(translation).forEach(([msgid, msgstr]) => {
-      if (msgid === "") return;
-      details.messageCount += 1;
-      details.translatedMessageCount += msgstr[1] ? 1 : 0;
-    });
-
-    details.coverage = (details.translatedMessageCount / details.messageCount * 100)
-      .toFixed(2);
-    details.summary = ` - "${language}" translated ${details.coverage} `;
-    details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
-
-    console.log(details.summary);
+    const details = parseFile(file);
+    allSummaries.push(details.summary);
     totalMessages += details.messageCount;
     totalTranslatedMessages += details.translatedMessageCount;
   });
 
-  const coverage = (totalTranslatedMessages / totalMessages * 100).toFixed(2);
+  const coverage = (totalTranslatedMessages / totalMessages) * 100;
   const summary =
-    `Total coverage ${coverage}% (${totalTranslatedMessages} / ${totalMessages} messages)`;
+    `Total coverage ${coverage.toFixed(2)}% ` +
+    `(${totalTranslatedMessages} / ${totalMessages} messages)`;
 
   console.log(summary);
   core.setOutput("coverage", coverage);
@@ -3164,27 +3179,30 @@ async function main() {
 
   console.log("Creating check run");
   const octokit = github.getOctokit(token);
-  octokit.checks.create(
-    {
-      owner: context.repository.owner.login,
-      repo: context.repository.name,
-      name: "i18n-coverage",
-      head_sha: context.head_commit.id,
-      status: "completed",
-      conclusion: "neutral",
-      output: {
-        title: `I18N: ${coverage}%`,
-        summary: summary,
-        text: Object.values(perLanguageDetails).map((details) => details.summary).join("\n")
-      }
-    }
-  );
+  let conclusion;
 
+  if (!minCoverage) {
+    conclusion = "neutral";
+  } else if (coverage >= minCoverage) {
+    conclusion = "success";
+  } else {
+    conclusion = "failure";
+  }
+
+  octokit.checks.create({
+    owner: context.repository.owner.login,
+    repo: context.repository.name,
+    name: "i18n-coverage",
+    head_sha: context.head_commit.id,
+    status: "completed",
+    conclusion,
+    output: {
+      title: `I18N: ${coverage}%`,
+      summary: summary,
+      text: allSummaries.join("\n"),
+    },
+  });
 }
-
-main().catch((error) => {
-  core.setFailed(error.message);
-});
 
 
 /***/ }),
