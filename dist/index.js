@@ -3107,9 +3107,10 @@ async function main() {
   console.log("ignore-languages:", ignoreLanguages);
 
   const globber = await glob.create([
-    `${translationPath}/**/*.po`,
+    `${translationPath}/**/*.po`
   ].join("\n"));
 
+  const perLanguageDetails = {};
   let totalMessages = 0;
   let totalTranslatedMessages = 0;
 
@@ -3117,42 +3118,52 @@ async function main() {
     console.log("Parsing file:", file);
     const translation = po2json.parseFileSync(file);
     const language = translation[""].language.trim().toLowerCase();
+    const details = {
+      skipped: false,
+      messageCount: 0,
+      translatedMessageCount: 0,
+      summary: "",
+      coverage: 0
+    };
+    perLanguageDetails[language] = details;
     if (
       (onlyLanguages.length > 0 && onlyLanguages.indexOf(language) === -1) ||
       (ignoreLanguages.length > 0 && ignoreLanguages.indexOf(language) !== -1)
     ) {
-      console.log("Skipping file:", file)
-      return
+      console.log("Skipping file:", file);
+      details.skipped = true;
+      details.summary = ` - "${language}" skipped`
+      return;
     }
 
-    let poMessages = 0;
-    let poTranslatedMessages = 0;
-
-    Object.entries(translation).forEach(([msgid ,msgstr]) => {
+    Object.entries(translation).forEach(([msgid, msgstr]) => {
       if (msgid === "") return;
-      poMessages += 1;
-      poTranslatedMessages += msgstr[1] ? 1 : 0;
-    })
-    console.log(
-      `"${language}" translated ${(poTranslatedMessages / poMessages * 100).toFixed(2)}%`,
-      `(${poTranslatedMessages} / ${poMessages})`
-    )
-    totalMessages += poMessages;
-    totalTranslatedMessages += poTranslatedMessages;
+      details.messageCount += 1;
+      details.translatedMessageCount += msgstr[1] ? 1 : 0;
+    });
+
+    details.coverage = (details.translatedMessageCount / details.messageCount * 100)
+      .toFixed(2);
+    details.summary = ` - "${language}" translated ${details.coverage} `;
+    details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
+
+    console.log(details.summary);
+    totalMessages += details.messageCount;
+    totalTranslatedMessages += details.translatedMessageCount;
   });
 
   const coverage = (totalTranslatedMessages / totalMessages * 100).toFixed(2);
   const summary =
-    `Total coverage ${coverage} (${totalTranslatedMessages} / ${totalMessages} messages)`
+    `Total coverage ${coverage}% (${totalTranslatedMessages} / ${totalMessages} messages)`;
 
-  console.log(summary)
+  console.log(summary);
   core.setOutput("coverage", coverage);
 
   const context = github.context.payload;
   if (!token || !context.head_commit) return;
 
   console.log("Creating check run");
-  const octokit = github.getOctokit(token)
+  const octokit = github.getOctokit(token);
   octokit.checks.create(
     {
       owner: context.repository.owner.login,
@@ -3162,12 +3173,12 @@ async function main() {
       status: "completed",
       conclusion: "neutral",
       output: {
-        title: `I18N coverage: ${coverage}%`,
+        title: `I18N: ${coverage}%`,
         summary: summary,
-        // TODO, add details
+        text: Object.values(perLanguageDetails).map((details) => details.summary).join("\n")
       }
     }
-  )
+  );
 
 }
 
