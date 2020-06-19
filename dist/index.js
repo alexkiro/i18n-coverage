@@ -3198,7 +3198,7 @@ async function main() {
     conclusion,
     output: {
       title: `I18N: ${coverage}%`,
-      summary: summary,
+      summary: summary + `, min-coverage: ${minCoverage}`,
       text: allSummaries.join("\n"),
     },
   });
