@@ -13,6 +13,9 @@ inputs:
     description: 'Check all languages expect this one, comma separated list'
     required: false
     default: ''
+  token:
+    description: "GitHub Secret Token"
+    required: true
 outputs:
   coverage:
     description: 'Coverage percentage'

@@ -10,6 +10,7 @@ jobs:
         id: i18nCov
         uses: alexkiro/i18n-coverage@master
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           translations-path: './translations/'
           ignore-languages: 'en'
       - name: Get the coverage
