@@ -98,3 +98,53 @@ Comma separated list of languages codes; if specified only these languages will 
 ### `coverage`
 
 Total percentage of translated strings, across all checked languages.
+
+----
+
+## Development
+
+Steps to prepare dev environment: 
+ 
+ 1. Ensure you have nodejs version 12+ installed
+ 2. Clone the repository
+ 3. Install dependencies: 
+```
+npm install
+```
+ 4. (Optional) Compile messages:
+```
+./compilemessages.sh
+```
+
+The main code entrypoint is `src/index.js`
+
+### Creating a new build 
+
+This action is using @zeit/ncc to deploy the the index.js together with required dependencies.
+A new build can be created using:
+
+```
+npm run build
+``` 
+
+This will update the dist/index.js file, which then needs to be committed and pushed to the repo. If 
+this step is 
+
+### Code style
+
+The repo uses ESLint for linting. To lint and fix the code you can run:
+
+```
+npm run lint
+```
+
+### Tests
+
+There are no automated tests, however the github workflow will currently run the latest version of the 
+action on the `translations` folder in the repo. This functions as a very basic smoke test. 
+
+The translations are managed using the sample code and the two scripts:
+
+ - makemesssages.sh (updates po files)
+ - compilemessages.sh (compiles po files into mo)
+ 
