@@ -19,7 +19,7 @@ msgstr ""
 
 #: sample/python/test.py:6
 msgid "Translate me"
-msgstr "Traduce-mă"
+msgstr ""
 
 #: sample/python/test.py:7
 msgid "Don't translate me"
