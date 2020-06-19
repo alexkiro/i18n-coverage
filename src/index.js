@@ -65,7 +65,7 @@ function parseFile(file) {
     (details.translatedMessageCount / details.messageCount) *
     100
   ).toFixed(2);
-  details.summary = ` - "${file}" translated ${details.coverage} `;
+  details.summary = ` - "${file}" translated ${details.coverage}% `;
   details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
 
   console.log(details.summary);
@@ -118,7 +118,7 @@ async function main() {
     conclusion,
     output: {
       title: `I18N: ${coverage}%`,
-      summary: summary + `, min-coverage: ${minCoverage}`,
+      summary: summary + `, min-coverage: ${minCoverage}%`,
       text: allSummaries.join("\n"),
     },
   });
