@@ -3,7 +3,7 @@ on: [push]
 jobs:
   i18n-coverage:
     runs-on: ubuntu-latest
-    name: Check i18n coverage
+    name: Run checks
     steps:
       - uses: actions/checkout@v2
       - name: Check i18n coverage

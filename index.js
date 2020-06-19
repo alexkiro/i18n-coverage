@@ -10,6 +10,7 @@ const translationPath =
   core.getInput("translations-path") || "translations/**/*.po";
 const onlyLanguages = getArrayInput(core.getInput("only-languages"));
 const ignoreLanguages = getArrayInput(core.getInput("ignore-languages"));
+const minCoverage = parseFloat(core.getInput("min-Coverage") || "0.0");
 
 console.log("translations-path", translationPath);
 console.log("only-languages:", onlyLanguages);
@@ -85,8 +86,10 @@ async function main() {
     totalTranslatedMessages += details.translatedMessageCount;
   });
 
-  const coverage = ((totalTranslatedMessages / totalMessages) * 100).toFixed(2);
-  const summary = `Total coverage ${coverage}% (${totalTranslatedMessages} / ${totalMessages} messages)`;
+  const coverage = (totalTranslatedMessages / totalMessages) * 100;
+  const summary =
+    `Total coverage ${coverage.toFixed(2)}% ` +
+    `(${totalTranslatedMessages} / ${totalMessages} messages)`;
 
   console.log(summary);
   core.setOutput("coverage", coverage);
@@ -96,13 +99,23 @@ async function main() {
 
   console.log("Creating check run");
   const octokit = github.getOctokit(token);
+  let conclusion;
+
+  if (!minCoverage) {
+    conclusion = "neutral";
+  } else if (coverage >= minCoverage) {
+    conclusion = "success";
+  } else {
+    conclusion = "failure";
+  }
+
   octokit.checks.create({
     owner: context.repository.owner.login,
     repo: context.repository.name,
     name: "i18n-coverage",
     head_sha: context.head_commit.id,
     status: "completed",
-    conclusion: "neutral",
+    conclusion,
     output: {
       title: `I18N: ${coverage}%`,
       summary: summary,
