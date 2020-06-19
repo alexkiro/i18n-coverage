@@ -14297,7 +14297,7 @@ async function main() {
     status: "completed",
     conclusion,
     output: {
-      title: `I18N: ${coverage}%`,
+      title: `I18N: ${coverage.toFixed(2)}%`,
       summary: summary + `, min-coverage: ${minCoverage}%`,
       text: allSummaries.join("\n"),
     },
