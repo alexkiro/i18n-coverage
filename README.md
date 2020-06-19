@@ -53,7 +53,16 @@ jobs:
       - name: Get the coverage
         run: echo "The coverage was ${{ steps.i18nCoverage.outputs.coverage }}"
 ```
-  
+
+## Check results
+
+The check details will be added to the triggered commit and will be displayed in GitHub. E.g:
+
+![Check summary](docs/imgs/check-summary.png)
+
+Including the full details. E.g:
+
+![Check details](docs/imgs/check-details.png)
 
 ## Inputs
 
@@ -69,7 +78,10 @@ are not attached to the commit, and therefore can only be found and used in the 
 ### `min-coverage`
 
 The minimum coverage required for this check to be marked as success. If not set or set to 0 the 
-check is marked as neutral. 
+check is marked as neutral. Float values are supported.
+
+ - See sample pr for success: https://github.com/alexkiro/i18n-coverage/pull/1 
+ - See sample pr for failure: https://github.com/alexkiro/i18n-coverage/pull/2 
 
 ### `ignore-languages`
 
