@@ -11,7 +11,8 @@ jobs:
         uses: alexkiro/i18n-coverage@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          translations-path: 'translations'
-          ignore-languages: 'en'
+          translations-path: "translations"
+          ignore-languages: "en"
+          min-coverage: "50"
       - name: Get the coverage
         run: echo "The coverage was ${{ steps.i18nCoverage.outputs.coverage }}"
