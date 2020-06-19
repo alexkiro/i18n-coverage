@@ -1,11 +1,13 @@
 # i18n-coverage
 
+![.github/workflows/ci.yml](https://github.com/alexkiro/i18n-coverage/workflows/.github/workflows/ci.yml/badge.svg)
+
 Github action that can be used to measure how many of you translatable strings 
 have a translation available. Currently supported formats:
 
  - [gettext .po files](https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html)
 
-If a token is also provided, the action will attach a neutral check to the head commit that triggered 
+The action can also attach a neutral/success/failure check to the head commit that triggered 
 the workflow, with the coverage results for each found language.
   
 ## Example usage
