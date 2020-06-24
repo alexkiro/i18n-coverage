@@ -55,7 +55,7 @@ function parseFile(file) {
   ) {
     console.log("Skipping file:", relPath);
     details.skipped = true;
-    details.summary = ` - "${relPath}" skipped`;
+    details.summary = `${relPath} skipped`;
     return details;
   }
 
