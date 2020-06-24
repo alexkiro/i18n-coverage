@@ -132,8 +132,8 @@ async function main() {
         .map((details) => {
           return {
             path: details.path,
-            start_line: 0,
-            end_line: 0,
+            start_line: 1,
+            end_line: 1,
             annotation_level: "notice",
             message: details.summary,
           };
