@@ -14309,12 +14309,19 @@ async function main() {
         .join("\n"),
       annotations: Object.values(perFileDetails)
         .filter((details) => !details.skipped)
+        // TODO, handle more than 50 files.
+        .slice(0, 50)
         .map((details) => {
+          let level = "notice";
+          if (minCoverage && details.coverage < minCoverage) {
+            level = "failure";
+          }
           return {
+            title: `${details.coverage.toFixed(0)}% i18n coverage.`,
             path: details.path,
             start_line: 1,
             end_line: 1,
-            annotation_level: "notice",
+            annotation_level: level,
             message: details.summary,
           };
         }),
