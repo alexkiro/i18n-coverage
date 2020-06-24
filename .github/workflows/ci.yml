@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: i18nCoverage
-        uses: alexkiro/i18n-coverage@master
+        uses: alexkiro/i18n-coverage@develop
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ignore-languages: "en"
