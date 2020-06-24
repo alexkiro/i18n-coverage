@@ -14180,6 +14180,7 @@ module.exports = {
 
 /* eslint-env node */
 
+const path = __webpack_require__(622);
 const core = __webpack_require__(470);
 const glob = __webpack_require__(281);
 const github = __webpack_require__(469);
@@ -14214,11 +14215,14 @@ function getArrayInput(value) {
 }
 
 function parseFile(file) {
-  console.log("Parsing file:", file);
+  const relPath = path.relative(".", file);
+  console.log("Parsing file:", relPath);
+
   const translation = po2json.parseFileSync(file);
   const language = translation[""].language.trim().toLowerCase();
   const details = {
     language,
+    path: relPath,
     skipped: false,
     messageCount: 0,
     translatedMessageCount: 0,
@@ -14229,9 +14233,9 @@ function parseFile(file) {
     (onlyLanguages.length > 0 && onlyLanguages.indexOf(language) === -1) ||
     (ignoreLanguages.length > 0 && ignoreLanguages.indexOf(language) !== -1)
   ) {
-    console.log("Skipping file:", file);
+    console.log("Skipping file:", relPath);
     details.skipped = true;
-    details.summary = ` - "${file}" skipped`;
+    details.summary = ` - "${relPath}" skipped`;
     return details;
   }
 
@@ -14245,7 +14249,7 @@ function parseFile(file) {
     (details.translatedMessageCount / details.messageCount) *
     100
   ).toFixed(2);
-  details.summary = ` - "${file}" translated ${details.coverage}% `;
+  details.summary = `${relPath} translated ${details.coverage}% `;
   details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
 
   console.log(details.summary);
@@ -14255,13 +14259,14 @@ function parseFile(file) {
 async function main() {
   const globber = await glob.create(translationPath);
 
-  let allSummaries = [];
+  const perFileDetails = {};
   let totalMessages = 0;
   let totalTranslatedMessages = 0;
 
   (await globber.glob()).forEach((file) => {
     const details = parseFile(file);
-    allSummaries.push(details.summary);
+
+    perFileDetails[details.language] = details;
     totalMessages += details.messageCount;
     totalTranslatedMessages += details.translatedMessageCount;
   });
@@ -14299,7 +14304,20 @@ async function main() {
     output: {
       title: `${coverage.toFixed(0)}% i18n coverage.`,
       summary: summary + `, min-coverage: ${minCoverage}%`,
-      text: allSummaries.join("\n"),
+      text: Object.values(perFileDetails)
+        .map((details) => " - " + details.summary)
+        .join("\n"),
+      annotations: Object.values(perFileDetails)
+        .filter((details) => !details.skipped)
+        .map((details) => {
+          return {
+            path: details.path,
+            start_line: 0,
+            end_line: 0,
+            annotation_level: "notice",
+            message: details.summary,
+          };
+        }),
     },
   });
 }
