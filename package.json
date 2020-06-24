@@ -1,7 +1,7 @@
 {
   "name": "i18n-coverage",
   "version": "1.0.0",
-  "description": "",
+  "description": "Github action that measures i18n coverage and attaches a coverage check to the commit.",
   "main": "src/index.js",
   "scripts": {
     "build": "ncc build src/index.js",
@@ -12,9 +12,26 @@
     "type": "git",
     "url": "git+https://github.com/alexkiro/i18n-coverage.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "github",
+    "i18n",
+    "translations",
+    "workflow",
+    "qa",
+    "coverage",
+    "internationalization",
+    "continuous-integration",
+    "translation-management",
+    "gettext",
+    "check",
+    "po",
+    "continous-deployment",
+    "github-actions",
+    "qa-automation",
+    "github-checks"
+  ],
+  "author": "Alexandru Chirila (alexkiro)",
+  "license": " Apache-2.0 License",
   "bugs": {
     "url": "https://github.com/alexkiro/i18n-coverage/issues"
   },
@@ -23,12 +40,13 @@
     "@actions/core": "^1.2.4",
     "@actions/github": "^3.0.0",
     "@actions/glob": "^0.1.0",
+    "path": "^0.12.7",
     "po2json": "^0.4.5"
   },
   "devDependencies": {
     "@zeit/ncc": "^0.22.3",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.2.0",
+    "eslint": "^7.3.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "lint-staged": "^10.2.11",
