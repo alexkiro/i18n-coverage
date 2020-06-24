@@ -14245,11 +14245,9 @@ function parseFile(file) {
     details.translatedMessageCount += msgstr[1] ? 1 : 0;
   });
 
-  details.coverage = (
-    (details.translatedMessageCount / details.messageCount) *
-    100
-  ).toFixed(2);
-  details.summary = `${relPath} translated ${details.coverage}% `;
+  details.coverage =
+    (details.translatedMessageCount / details.messageCount) * 100;
+  details.summary = `${relPath} translated ${details.coverage.toFixed(2)}% `;
   details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
 
   console.log(details.summary);
