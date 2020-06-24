@@ -14235,7 +14235,7 @@ function parseFile(file) {
   ) {
     console.log("Skipping file:", relPath);
     details.skipped = true;
-    details.summary = ` - "${relPath}" skipped`;
+    details.summary = `${relPath} skipped`;
     return details;
   }
 
@@ -14312,8 +14312,8 @@ async function main() {
         .map((details) => {
           return {
             path: details.path,
-            start_line: 0,
-            end_line: 0,
+            start_line: 1,
+            end_line: 1,
             annotation_level: "notice",
             message: details.summary,
           };
