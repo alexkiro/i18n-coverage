@@ -1,6 +1,6 @@
 {
   "name": "i18n-coverage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Github action that measures i18n coverage and attaches a coverage check to the commit.",
   "main": "src/index.js",
   "scripts": {
