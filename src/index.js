@@ -1,5 +1,6 @@
 /* eslint-env node */
 
+const path = require("path");
 const core = require("@actions/core");
 const glob = require("@actions/glob");
 const github = require("@actions/github");
@@ -34,11 +35,14 @@ function getArrayInput(value) {
 }
 
 function parseFile(file) {
-  console.log("Parsing file:", file);
+  const relPath = path.relative(".", file);
+  console.log("Parsing file:", relPath);
+
   const translation = po2json.parseFileSync(file);
   const language = translation[""].language.trim().toLowerCase();
   const details = {
     language,
+    path: relPath,
     skipped: false,
     messageCount: 0,
     translatedMessageCount: 0,
@@ -49,9 +53,9 @@ function parseFile(file) {
     (onlyLanguages.length > 0 && onlyLanguages.indexOf(language) === -1) ||
     (ignoreLanguages.length > 0 && ignoreLanguages.indexOf(language) !== -1)
   ) {
-    console.log("Skipping file:", file);
+    console.log("Skipping file:", relPath);
     details.skipped = true;
-    details.summary = ` - "${file}" skipped`;
+    details.summary = `${relPath} skipped`;
     return details;
   }
 
@@ -61,11 +65,9 @@ function parseFile(file) {
     details.translatedMessageCount += msgstr[1] ? 1 : 0;
   });
 
-  details.coverage = (
-    (details.translatedMessageCount / details.messageCount) *
-    100
-  ).toFixed(2);
-  details.summary = ` - "${file}" translated ${details.coverage}% `;
+  details.coverage =
+    (details.translatedMessageCount / details.messageCount) * 100;
+  details.summary = `${relPath} translated ${details.coverage.toFixed(2)}% `;
   details.summary += `(${details.translatedMessageCount} / ${details.messageCount} messages)`;
 
   console.log(details.summary);
@@ -75,13 +77,14 @@ function parseFile(file) {
 async function main() {
   const globber = await glob.create(translationPath);
 
-  let allSummaries = [];
+  const perFileDetails = {};
   let totalMessages = 0;
   let totalTranslatedMessages = 0;
 
   (await globber.glob()).forEach((file) => {
     const details = parseFile(file);
-    allSummaries.push(details.summary);
+
+    perFileDetails[details.language] = details;
     totalMessages += details.messageCount;
     totalTranslatedMessages += details.translatedMessageCount;
   });
@@ -119,7 +122,27 @@ async function main() {
     output: {
       title: `${coverage.toFixed(0)}% i18n coverage.`,
       summary: summary + `, min-coverage: ${minCoverage}%`,
-      text: allSummaries.join("\n"),
+      text: Object.values(perFileDetails)
+        .map((details) => " - " + details.summary)
+        .join("\n"),
+      annotations: Object.values(perFileDetails)
+        .filter((details) => !details.skipped)
+        // TODO, handle more than 50 files.
+        .slice(0, 50)
+        .map((details) => {
+          let level = "notice";
+          if (minCoverage && details.coverage < minCoverage) {
+            level = "failure";
+          }
+          return {
+            title: `${details.coverage.toFixed(0)}% i18n coverage.`,
+            path: details.path,
+            start_line: 1,
+            end_line: 1,
+            annotation_level: level,
+            message: details.summary,
+          };
+        }),
     },
   });
 }
